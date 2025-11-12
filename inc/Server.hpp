@@ -39,9 +39,9 @@ private:
 
 	// Pre-authentication commands
 	void _handleCap(int client_fd, const std::vector<std::string>& params);
+	void _handlePass(int client_fd, const std::vector<std::string>& params);
 
 	// Authentication commands
-	void _handlePass(int client_fd, const std::vector<std::string>& params);
 	void _handleNick(int client_fd, const std::vector<std::string>& params);
 	void _handleUser(int client_fd, const std::vector<std::string>& params);
 	void _handleRegister(int client_fd);

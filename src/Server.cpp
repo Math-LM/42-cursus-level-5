@@ -616,7 +616,7 @@ void Server::_handleTopic(int client_fd, const std::vector<std::string>& params)
 	}
 
 	// Set topic
-	if (channel->isTopicRestricted() || !channel->isOperator(client_fd)) {
+	if (channel->isTopicRestricted() && !channel->isOperator(client_fd)) {
 		_sendToClient(client_fd, ERR_CHANOPRIVSNEEDED(channel_name));
 		return;
 	}
