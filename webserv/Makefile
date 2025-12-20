@@ -25,31 +25,18 @@ COMPILED_COUNT	= $(O_DIR)/.compiled_count
 
 #───────────────────────────Mandatory Compilation────────────────────────────#
 
-# Core server files
-CORE_SRC	= main.cpp Server.cpp
-CORE_SRC	:= $(addprefix server/, $(CORE_SRC))
+# Server directory files (src/server/)
+SERVER_SRC	= main.cpp Server.cpp Client.cpp Request.cpp Response.cpp Config.cpp
+SERVER_SRC	:= $(addprefix src/server/, $(SERVER_SRC))
 
-# HTTP protocol files
-HTTP_SRC	= Client.cpp HttpRequest.cpp HttpResponse.cpp HttpStatus.cpp
-HTTP_SRC	:= $(addprefix http/, $(HTTP_SRC))
-
-# Configuration files
-CONFIG_SRC	= Config.cpp
-CONFIG_SRC	:= $(addprefix config/, $(CONFIG_SRC))
-
-# Utility files
-UTIL_SRC	= Utils.cpp
-UTIL_SRC	:= $(addprefix utils/, $(UTIL_SRC))
-
-# CGI handler
-CGI_SRC		= CgiHandler.cpp
-CGI_SRC		:= $(addprefix cgi/, $(CGI_SRC))
+# Root src directory files (src/)
+ROOT_SRC	= CgiHandler.cpp HttpStatus.cpp Utils.cpp
+ROOT_SRC	:= $(addprefix src/, $(ROOT_SRC))
 
 # Combine all sources
-SRC			= $(CORE_SRC) $(HTTP_SRC) $(CONFIG_SRC) $(UTIL_SRC) $(CGI_SRC)
-SRC			:= $(addprefix src/, $(SRC))
+SRC			= $(SERVER_SRC) $(ROOT_SRC)
 OBJ			= $(SRC:%.cpp=$(O_DIR)/%.o)
-INC			= -I include/
+INC			= -I inc/
 
 OBJ_COUNT 	= $(words $(OBJ))
 
