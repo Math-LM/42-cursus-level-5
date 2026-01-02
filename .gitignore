@@ -1,0 +1,17 @@
+# JetBrains IDEs (CLion, IntelliJ, etc.)
+.idea/
+
+# AI assistant data
+.ai/
+
+# Compiled Object files
+*.o
+*.obj
+
+# Executables
+*.out
+*.exe
+
+# macOS
+.DS_Store
+
