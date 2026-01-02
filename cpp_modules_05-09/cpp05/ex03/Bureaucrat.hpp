@@ -2,12 +2,14 @@
 // Created by viceda-s on 1/1/26.
 //
 
-#ifndef BUREAUCRAT_HPP
-#define BUREAUCRAT_HPP
+#ifndef BUREAUCRAT_EX02_HPP
+#define BUREAUCRAT_EX02_HPP
 
 #include <iostream>
 #include <string>
 #include <exception>
+
+class AForm;
 
 class Bureaucrat
 {
@@ -28,8 +30,8 @@ public:
 
 	void				incrementGrade();
 	void				decrementGrade();
-
-	std::ostream		&operator<<(std::ostream &os) const;
+	void				signForm(AForm &form);
+	void				executeForm(const AForm &form);
 
 	class GradeTooHighException : public std::exception
 	{
