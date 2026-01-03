@@ -5,11 +5,11 @@ Milestone 5 focuses on advanced system programming, networking, containerization
 ## 🏅 My Scores
 
 | Project            | Status / Score | Notable Features |
-| :--                | :--:           | :--              |
-| ft_irc             | 🌟 125/100     | IRC server, TCP sockets, multiplexing, real-time communication |
-| CPP Modules 05–09  | 🚧 WIP         | Advanced C++ (exceptions, templates, STL, containers) |
-| Inception          | 🚧 WIP         | Docker, Docker Compose, containerized infrastructure |
-| webserv            | 🚧 WIP         | HTTP server, sockets, configuration parsing |
+| :--                |:--------------:| :--              |
+| ft_irc             |   🌟 125/100   | IRC server, TCP sockets, multiplexing, real-time communication |
+| CPP Modules 05–09  |  🚧 WIP (2/5)  | Advanced C++ (exceptions, templates, STL, containers) |
+| Inception          |     🚧 WIP     | Docker, Docker Compose, containerized infrastructure |
+| webserv            |     🚧 WIP     | HTTP server, sockets, configuration parsing |
 
 ---
 
@@ -46,8 +46,8 @@ Implement a fully functional **IRC server** in C++, compliant with the IRC proto
 Deepen C++ expertise through advanced language features and standard library usage.
 
 ### Topics Covered
-- **CPP05:** Exceptions and error handling
-- **CPP06:** C++ casts and type conversions
+- **CPP05:** Exceptions and error handling ✅
+- **CPP06:** C++ casts and type conversions ✅
 - **CPP07:** Templates and generic programming
 - **CPP08:** STL containers, iterators, and algorithms
 - **CPP09:** Advanced STL usage and performance considerations
