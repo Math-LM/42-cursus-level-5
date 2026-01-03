@@ -1,0 +1,24 @@
+//
+// Created by viceda-s on 03/01/2026.
+//
+
+#ifndef ITER_HPP
+#define ITER_HPP
+
+// Exercise 01: Iter
+// Function template that applies a function to every element of an array
+
+template <typename T>
+void iter(T *array, const int length, void (*func)(T &)) {
+    for (int i = 0; i < length; i++)
+        func(array[i]);
+}
+
+// Overload for const function pointers
+template <typename T>
+void iter(T *array, const int length, void (*func)(const T &)) {
+    for (int i = 0; i < length; i++)
+        func(array[i]);
+}
+
+#endif
