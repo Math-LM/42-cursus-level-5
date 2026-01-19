@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
-#include <time.h>
+#include <ctime>
 #include <set>
 
 PmergeMe::PmergeMe() : _vectorTime(0.0), _dequeTime(0.0) {}
@@ -287,7 +287,7 @@ void PmergeMe::displayResults() const {
 
     std::cout << std::fixed << std::setprecision(3);
     std::cout << "Time to process a range of " << _vectorData.size()
-              << " elements with std::vector : " << _vectorTime << " us" << std::endl;
+              << " elements with std::vector : " << _vectorTime << " µs" << std::endl;
     std::cout << "Time to process a range of " << _dequeData.size()
-              << " elements with std::deque  : " << _dequeTime << " us" << std::endl;
+              << " elements with std::deque  : " << _dequeTime << " µs" << std::endl;
 }
