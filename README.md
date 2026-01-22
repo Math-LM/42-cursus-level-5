@@ -7,13 +7,13 @@ Milestone 5 focuses on advanced system programming, networking, containerization
 | Project            | Status / Score | Notable Features |
 | :--                |:--------------:| :--              |
 | ft_irc             |   🌟 125/100   | IRC server, TCP sockets, multiplexing, real-time communication |
-| CPP Modules 05–09  |  🚧 WIP (4/5)  | Advanced C++ (exceptions, templates, STL, containers) |
+| CPP Modules 05–09  |  ✅ 5/5  | Advanced C++ (exceptions, templates, STL, containers) |
 | Inception          |     🚧 WIP     | Docker, Docker Compose, containerized infrastructure |
 | webserv            |     🚧 WIP     | HTTP server, sockets, configuration parsing |
 
 ---
 
-## 💬 ft_irc – 125/100 🌟
+## 💬 ft_irc (w/ joao-alm) – 125/100 🌟
 
 ### Objective
 Implement a fully functional **IRC server** in C++, compliant with the IRC protocol, capable of handling multiple clients simultaneously.
@@ -40,22 +40,41 @@ Implement a fully functional **IRC server** in C++, compliant with the IRC proto
 
 ---
 
-## 🖥️ CPP Modules 05–09 – Work in Progress 🚧
+## 🖥️ CPP Modules 05–09 – 100/100 ✅
 
 ### Objective
 Deepen C++ expertise through advanced language features and standard library usage.
 
-### Topics Covered
-- **CPP05:** Exceptions and error handling ✅
-- **CPP06:** C++ casts and type conversions ✅
-- **CPP07:** Templates and generic programming ✅
-- **CPP08:** STL containers, iterators, and algorithms ✅
-- **CPP09:** Advanced STL usage and performance considerations
+### Challenges Faced
+- Understanding the nuances of different cast types and when to appropriately use each one required careful study of type safety.
+- Implementing exception handling without memory leaks and ensuring proper resource management in error scenarios.
+- Mastering template syntax and debugging template compilation errors, which can be cryptic and difficult to interpret.
+- Learning to efficiently use STL algorithms and choosing the right container for specific use cases based on performance requirements.
 
-### Current Focus
-- Writing safer and more expressive C++ code
-- Leveraging STL for clean and efficient solutions
-- Improving understanding of generic programming and type safety
+### Skills Developed
+- Exception handling and error management, type casting and conversions, template programming and generic code design, STL containers and algorithms mastery, and performance optimization techniques.
+
+### Module Details
+
+1. **CPP05 – Exceptions and Error Handling**
+   - **Objective:** Exception handling mechanisms, try-catch blocks, custom exception classes, and error propagation in C++.
+   - **Score: 100/100 ✅**
+
+2. **CPP06 – C++ Casts and Type Conversions**
+   - **Objective:** Type casting in C++ including static_cast, dynamic_cast, const_cast, reinterpret_cast, and understanding type conversion rules.
+   - **Score: 100/100 ✅**
+
+3. **CPP07 – Templates and Generic Programming**
+   - **Objective:** Function templates, class templates, template specialization, and writing generic, reusable code.
+   - **Score: 100/100 ✅**
+
+4. **CPP08 – STL Containers, Iterators, and Algorithms**
+   - **Objective:** Standard Template Library containers (vector, list, map, etc.), iterators, and standard algorithms for data manipulation.
+   - **Score: 100/100 ✅**
+
+5. **CPP09 – Advanced STL Usage and Performance Considerations**
+   - **Objective:** Complex STL usage patterns, container adapters (stack, queue), algorithm optimization, and performance analysis.
+   - **Score: 100/100 ✅**
 
 ---
 
@@ -77,7 +96,7 @@ Build a complete containerized infrastructure using **Docker** and **Docker Comp
 
 ---
 
-## 🌐 webserv – Work in Progress 🚧
+## 🌐 webserv (w/ avigna & brunmart) – Work in Progress 🚧
 
 ### Objective
 Develop a **custom HTTP server** in C++, compliant with the HTTP/1.1 specification, capable of handling multiple clients and requests concurrently.
