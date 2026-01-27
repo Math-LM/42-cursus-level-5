@@ -1,6 +1,6 @@
 ## Milestone 5 – In Progress 🟡
 
-Milestone 5 focuses on advanced system programming, networking, containerization, and deeper C++ concepts. At this stage, **ft_irc** has been successfully completed with bonus, while **CPP Modules 05–09**, **Inception** and **webserv** are currently **work in progress**.
+Milestone 5 focuses on advanced system programming, networking, containerization, and deeper C++ concepts. At this stage, **ft_irc** and **CPP Modules 05–09** has been successfully completed with bonus, while **Inception** and **webserv** are currently **work in progress**.
 
 ## 🏅 My Scores
 
