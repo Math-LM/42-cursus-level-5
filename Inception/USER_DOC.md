@@ -1,306 +1,258 @@
-# USER_DOC.md - User and Administrator Guide
+# User Documentation
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Getting Started](#getting-started)
-3. [Accessing Services](#accessing-services)
-4. [Managing Credentials](#managing-credentials)
-5. [Starting and Stopping](#starting-and-stopping)
-6. [Troubleshooting](#troubleshooting)
-7. [Data Management](#data-management)
+This guide explains how to use and administer the Inception infrastructure. It is written for end users and administrators who need to access the services, manage credentials, and verify that everything is running correctly.
 
 ---
 
-## Overview
+## What Services Are Provided
 
-### What is This?
+The Inception stack deploys a complete web infrastructure composed of the following services:
 
-The Inception project is a complete web infrastructure powered by Docker. It provides:
+| Service | What It Does | How to Access |
+|---------|-------------|---------------|
+| **Nginx** | Reverse proxy; the sole HTTPS entry point for all web traffic | Port 443 on the host |
+| **WordPress** | Blog and content management system (CMS) | `https://viceda-s.42.fr` |
+| **MariaDB** | Relational database storing all WordPress content | Internal only (port 3306) |
+| **Redis** | In-memory cache that speeds up WordPress | Internal only (port 6379) |
+| **FTP** | File transfer server for uploading/downloading WordPress files | `ftp://viceda-s.42.fr:21` |
+| **Adminer** | Lightweight web UI for managing the database | `https://viceda-s.42.fr/adminer` |
+| **Static Site** | A simple HTML/CSS/JS portfolio page | `https://viceda-s.42.fr/portfolio` |
+| **File Browser** | Web-based file manager for browsing WordPress volumes | `http://localhost:8080` |
 
-- **WordPress Blog**: A ready-to-use content management system for blogging and web publishing
-- **Database**: A MariaDB server that stores all WordPress content securely
-- **Web Server**: An Nginx server with HTTPS encryption protecting all traffic
-- **Bonus Tools**: File management (FTP), database admin panel (Adminer), caching (Redis), and a portfolio website
-
-All services run in isolated containers that communicate securely with each other.
-
-### Services at a Glance
-
-| Service | Purpose | Port |
-|---------|---------|------|
-| Nginx | Web server & reverse proxy | 443 (HTTPS) |
-| WordPress | Blog platform with PHP | Port 9000 (internal) |
-| MariaDB | Database | Port 3306 (internal) |
-| Redis | Cache for WordPress | Port 6379 (internal) |
-| FTP | File transfer server | Port 21 + 21000-21010 |
-| Adminer | Database UI | Accessible via Nginx |
-| Static Site | Portfolio website | Accessible via Nginx |
-
-**Note**: Only Nginx port 443 is exposed externally. All other services communicate internally.
+Only Nginx (port 443) and the FTP server (port 21) are exposed to the host. All other services communicate internally over the Docker network.
 
 ---
 
-## Getting Started
+## Starting and Stopping the Project
 
-### Prerequisites
+### Start the Infrastructure
 
-- Docker and Docker Compose installed on your system
-- At least 1GB of free disk space
-- Access to your system's hosts file or IP configuration
-
-### First-Time Setup
-
-#### Step 1: Configure Your Domain
-
-On your development machine, add this line to `/etc/hosts`:
-
-```
-127.0.0.1 <your_login>.42.fr
-```
-
-Replace `<your_login>` with your actual 42 login (e.g., `27.0.0.1 vicente.42.fr`).
-
-**On Linux/Mac:**
-```bash
-sudo nano /etc/hosts
-# Add the line above, save, and exit
-```
-
-**On Windows:**
-```
-C:\Windows\System32\drivers\etc\hosts
-```
-(Open as Administrator)
-
-#### Step 2: Start the Infrastructure
+From the project root directory:
 
 ```bash
-cd ~/Inception
 make
 ```
 
-The first run will take 2-5 minutes as Docker builds and initializes everything.
+This builds all Docker images (if not already built) and starts every container in the background. The first run takes 2–5 minutes; subsequent starts are much faster.
 
-#### Step 3: Wait for Initialization
-
-Monitor the startup:
-```bash
-make logs
-```
-
-Look for messages like:
-- `MariaDB initialized successfully`
-- `WordPress setup complete`
-- `Nginx started`
-
-Press `Ctrl+C` to exit log view.
-
-#### Step 4: Verify Everything is Running
+### Stop the Infrastructure
 
 ```bash
-docker ps
+make down
 ```
 
-You should see 7 containers (3 mandatory + 4 bonus):
-- mariadb
-- wordpress
-- nginx
-- redis
-- ftp
-- adminer
-- static-site
+This stops and removes all containers. **Your data is preserved** — volumes are not deleted.
 
-All should show `STATUS: Up`
+### Pause and Resume
+
+To stop containers without removing them:
+
+```bash
+make stop
+```
+
+To resume stopped containers:
+
+```bash
+make start
+```
+
+### Full Reset
+
+To remove everything (containers, images, volumes, and stored data) and start fresh:
+
+```bash
+make fclean
+make
+```
+
+> **Warning:** `make fclean` deletes all persistent data (database content, WordPress files). Use this only if you want a clean slate.
 
 ---
 
-## Accessing Services
+## Accessing the Website and Administration Panel
 
 ### WordPress Website
 
-**URL:** `https://<your_login>.42.fr`
+**URL:** `https://viceda-s.42.fr`
 
-**HTTPS Warning**: You'll see a browser security warning because the certificate is self-signed (not from a trusted authority). This is normal for development. You can:
+When you visit this URL, your browser will show a security warning because the TLS certificate is self-signed. This is normal for a development environment.
 
-- **Chrome/Edge**: Click "Advanced" → "Proceed to..."
-- **Firefox**: Click "Advanced" → "Accept the Risk"
-- **Safari**: Click "Show Details" → "Visit this website"
+- **Chrome / Edge:** Click "Advanced" then "Proceed to viceda-s.42.fr (unsafe)"
+- **Firefox:** Click "Advanced" then "Accept the Risk and Continue"
+- **Safari:** Click "Show Details" then "visit this website"
 
 ### WordPress Admin Panel
 
-**URL:** `https://<your_login>.42.fr/wp-admin`
+**URL:** `https://viceda-s.42.fr/wp-admin`
 
-Log in with:
-- **Username**: The admin user created during setup (not containing "admin")
-- **Password**: Set in your environment or `secrets/credentials.txt`
+Log in with the administrator credentials configured during setup:
 
-From here, you can:
-- Write and publish posts
-- Manage users and permissions
-- Install themes and plugins
-- Configure site settings
+- **Username:** The value of `WP_ADMIN_USER` in `srcs/.env`
+- **Password:** The value of `WP_ADMIN_PASSWORD` in `srcs/.env`
 
-### Database Admin (Adminer)
+From the admin panel you can:
 
-**URL:** `https://<your_login>.42.fr/adminer`
+- Write, edit, and publish posts and pages
+- Manage users and their roles
+- Install and configure themes and plugins
+- Adjust site settings (title, tagline, permalinks, etc.)
 
-Adminer allows you to manage your database directly:
+### Adminer (Database Management)
 
-1. **Server**: `mariadb`
-2. **Username**: `wp_user` (as configured)
-3. **Password**: Found in your environment variables or `secrets/db_password.txt`
-4. **Database**: `wordpress`
+**URL:** `https://viceda-s.42.fr/adminer`
 
-**Be careful** - you can modify or delete data here!
+Fill in the login form:
 
-### Portfolio Website (Static Site)
+| Field | Value |
+|-------|-------|
+| System | MySQL |
+| Server | `mariadb` |
+| Username | Value of `MYSQL_USER` in `srcs/.env` |
+| Password | Value of `MYSQL_PASSWORD` in `srcs/.env` (or contents of `secrets/db_password.txt`) |
+| Database | `wordpress` |
 
-**URL:** `https://<your_login>.42.fr/portfolio`
+> **Caution:** Adminer gives direct access to the database. Modifying or deleting rows can break the WordPress installation.
 
-A simple HTML/CSS showcase. Edit the files at:
-```
-srcs/requirements/bonus/static-site/site/
-```
+### Static Site (Portfolio)
 
-Changes take effect after container restart:
+**URL:** `https://viceda-s.42.fr/portfolio`
+
+A static HTML/CSS/JS page served via Nginx. To edit it, modify the files under `srcs/requirements/bonus/static-site/site/` and restart the container:
+
 ```bash
-docker-compose -f srcs/docker-compose.yml restart static-site
+sudo docker-compose -f srcs/docker-compose.yml restart static-site
 ```
+
+### File Browser
+
+**URL:** `http://localhost:8080`
+
+A web-based file manager that provides read-only access to the WordPress volume. Log in with:
+
+- **Username:** Value of `FB_ADMIN_USER` in `srcs/.env`
+- **Password:** Value of `FB_ADMIN_PASSWORD` in `srcs/.env`
 
 ### FTP Server
 
-**Access:** `ftp://<your_login>.42.fr:21`
+**Access:** `ftp://viceda-s.42.fr:21`
 
-**Credentials:**
-- **Username**: `ftpuser`
-- **Password**: Found in `secrets/credentials.txt`
+- **Username:** Value of `FTP_USER` in `srcs/.env`
+- **Password:** Value of `FTP_PASSWORD` in `srcs/.env`
 
-**Tools:**
-- **Command line**: `ftp <your_login>.42.fr`
-- **Windows**: Windows Explorer (File → New → FTP Location)
-- **Mac**: Finder → Go → Connect to Server
-- **Linux**: FileZilla, Nautilus, or `ftp` command
+Modern browsers no longer support FTP. Use command-line tools instead:
 
-**What you can do:**
-- Upload, download, and edit WordPress files
-- Useful for developers managing content
+```bash
+# List files
+curl ftp://viceda-s.42.fr:21/ --user <FTP_USER>:<FTP_PASSWORD>
+
+# Download a file
+curl ftp://viceda-s.42.fr:21/filename --user <FTP_USER>:<FTP_PASSWORD> -o filename
+
+# Upload a file
+curl -T localfile.txt ftp://viceda-s.42.fr:21/ --user <FTP_USER>:<FTP_PASSWORD>
+```
+
+Or use an FTP client such as FileZilla or `lftp`.
 
 ---
 
-## Managing Credentials
+## Locating and Managing Credentials
 
 ### Where Credentials Are Stored
 
-All sensitive information is stored in the `secrets/` folder at the project root:
-
-```
-secrets/
-├── db_root_password.txt       # MariaDB root password
-├── db_password.txt             # WordPress database user password
-└── credentials.txt             # User account credentials
-```
+| File | Contents |
+|------|----------|
+| `secrets/db_root_password.txt` | MariaDB root password |
+| `secrets/db_password.txt` | WordPress database user password |
+| `secrets/credentials.txt` | Application-level credentials (format: `user:password`) |
+| `srcs/.env` | All environment variables including usernames, non-secret config, and some passwords |
 
 ### Viewing Credentials
 
-To see your WordPress admin password:
 ```bash
-cat secrets/credentials.txt
-```
-
-To see the database password:
-```bash
+cat secrets/db_root_password.txt
 cat secrets/db_password.txt
+cat secrets/credentials.txt
+cat srcs/.env
 ```
 
 ### Changing Credentials
 
-**Important**: Changing credentials after the first run requires rebuilding the database.
+Changing credentials after the initial setup requires a full rebuild because the database is initialized with the original values.
 
-1. **Stop the infrastructure:**
-   ```bash
-   make down
-   ```
-
-2. **Update credential files:**
-   ```bash
-   echo "new_password" > secrets/db_password.txt
-   ```
-
-3. **Clean volumes to reset the database:**
+1. Stop and clean everything:
    ```bash
    make fclean
    ```
-
-4. **Update `srcs/.env` if needed:**
-   ```bash
-   nano srcs/.env
-   # Change MYSQL_PASSWORD, etc.
-   ```
-
-5. **Rebuild:**
+2. Edit the credential files and/or `srcs/.env` with the new values.
+3. Rebuild:
    ```bash
    make
    ```
 
 ### Security Notes
 
-- **Never commit** credential files to Git
-- The `secrets/` folder should be in `.gitignore`
-- Use strong passwords (at least 12 characters, mix of uppercase, numbers, symbols)
-- Change passwords periodically in production environments
+- The `secrets/` directory and `srcs/.env` should be listed in `.gitignore` and must **never** be committed to version control.
+- Use strong passwords (12+ characters, mixed case, numbers, symbols).
+- The self-signed TLS certificate is suitable for development only — not for production.
 
 ---
 
-## Starting and Stopping
+## Checking That Services Are Running Correctly
 
-### Start Everything
-
-```bash
-make
-```
-
-Or explicitly:
+### Quick Health Check
 
 ```bash
-make up
+docker ps
 ```
 
-### Stop Everything (containers keep their data)
+You should see **8 containers** (3 mandatory + 5 bonus), all with `STATUS: Up`:
 
-```bash
-make down
-```
-
-### Pause and Resume
-
-Stop without removing containers:
-```bash
-make stop
-```
-
-Resume stopped containers:
-```bash
-make start
-```
+| Container | Expected Status |
+|-----------|----------------|
+| mariadb | Up |
+| wordpress | Up |
+| nginx | Up |
+| redis | Up |
+| ftp | Up |
+| adminer | Up |
+| static-site | Up |
+| filebrowser | Up |
 
 ### View Logs
 
 Real-time logs from all services:
+
 ```bash
 make logs
 ```
 
 Logs from a specific service:
+
 ```bash
-docker-compose -f srcs/docker-compose.yml logs wordpress
-docker-compose -f srcs/docker-compose.yml logs mariadb
-docker-compose -f srcs/docker-compose.yml logs nginx
+sudo docker-compose -f srcs/docker-compose.yml logs wordpress
+sudo docker-compose -f srcs/docker-compose.yml logs mariadb
+sudo docker-compose -f srcs/docker-compose.yml logs nginx
 ```
 
-Follow specific service logs:
+Press `Ctrl+C` to stop following logs.
+
+### Test HTTPS Connectivity
+
 ```bash
-docker-compose -f srcs/docker-compose.yml logs -f wordpress
+curl -k https://viceda-s.42.fr
 ```
+
+A successful response returns the WordPress HTML page. The `-k` flag skips certificate verification (needed for self-signed certs).
+
+### Check Resource Usage
+
+```bash
+docker stats
+```
+
+Shows live CPU, memory, and network usage per container. Press `Ctrl+C` to exit.
 
 ---
 
@@ -308,220 +260,85 @@ docker-compose -f srcs/docker-compose.yml logs -f wordpress
 
 ### Services Won't Start
 
-**Check logs:**
 ```bash
 make logs
 ```
 
-**Common issues:**
+Look for error messages. Common causes:
 
-1. **Port 443 already in use**
-   ```bash
-   # Find what's using port 443
-   sudo lsof -i :443
-   # Stop the conflicting service or change Nginx port in docker-compose.yml
-   ```
+- **Port 443 already in use:** Another service is occupying the port. Check with `sudo lsof -i :443`.
+- **Docker daemon not running:** Start it with `sudo systemctl start docker`.
+- **Missing environment variables:** Ensure `srcs/.env` exists and contains all required values.
 
-2. **DNS resolution issues**
-   - Verify `/etc/hosts` entry is correct
-   - Try using IP address instead: `https://127.0.0.1`
+### Cannot Access WordPress
 
-3. **Docker daemon not running**
-   ```bash
-   # On Linux
-   sudo systemctl start docker
-   # On Mac/Windows
-   # Restart Docker Desktop
-   ```
+1. **Browser shows "connection refused"** — Nginx may not be running. Check `docker ps`.
+2. **Blank page or loading indefinitely** — WordPress may still be initializing. Wait 1–2 minutes and try again.
+3. **404 error** — Database may not be ready. Check MariaDB logs: `sudo docker-compose -f srcs/docker-compose.yml logs mariadb`.
 
-### Can't Access WordPress
+### Cannot Resolve `viceda-s.42.fr`
 
-1. **Certificate warning persists** - This is normal for self-signed certs
-2. **Connection refused** - Nginx might not be running. Check: `docker ps`
-3. **Blank page** - Wait a bit longer (initialization can take 2-5 minutes)
-4. **404 error** - Check database is initialized: `docker logs mariadb`
+Verify your `/etc/hosts` file contains:
 
-### Database Connection Errors
-
-```bash
-# Check if MariaDB is running
-docker-compose -f srcs/docker-compose.yml ps mariadb
-
-# Test database connection
-docker-compose -f srcs/docker-compose.yml exec wordpress \
-  mysql -h mariadb -u wp_user -p${MYSQL_PASSWORD} -e "SELECT 1"
+```
+127.0.0.1 viceda-s.42.fr
 ```
 
-### FTP Not Working
+### Database Errors
+
+MariaDB may take a moment to initialize on first boot. Re-check after 30 seconds. If the problem persists:
 
 ```bash
-# Check FTP container
-docker-compose -f srcs/docker-compose.yml ps ftp
-
-# Check logs
-docker-compose -f srcs/docker-compose.yml logs ftp
-
-# Verify ports are open (if behind firewall)
-netstat -tlnp | grep 21
+sudo docker-compose -f srcs/docker-compose.yml logs mariadb
 ```
 
 ### High Disk Usage
 
-Volumes might be consuming space:
+Check how much space volumes are consuming:
 
 ```bash
-# Check volume sizes
-docker volume ls
+du -sh /home/viceda-s/data/*
+```
 
-# See which volume is large
-du -sh /home/$(whoami)/data/*
+To reclaim space with a full reset:
 
-# Clean up old WordPress files if needed
+```bash
 make fclean
+make
 ```
 
 ---
 
-## Data Management
+## Data Persistence
 
-### Where Is My Data?
-
-All persistent data is stored on your host machine:
+All persistent data is stored on the host at:
 
 ```
-/home/<your_login>/data/
-├── mariadb/          # Database files
-└── wordpress/        # WordPress files (themes, plugins, uploads)
+/home/viceda-s/data/
+├── mariadb/      # Database files
+└── wordpress/    # WordPress files (themes, plugins, uploads, wp-config.php)
 ```
 
-This means your data survives even if containers crash or are deleted.
+This data survives container stops, restarts, and removals (unless you run `make fclean`).
 
-### Backing Up Your Data
+### Backing Up
 
-**Full backup:**
 ```bash
-tar -czf ~/inception_backup.tar.gz /home/$(whoami)/data/
+# Full backup
+tar -czf ~/inception_backup.tar.gz /home/viceda-s/data/
+
+# Database dump
+sudo docker-compose -f srcs/docker-compose.yml exec mariadb \
+  mysqldump -uroot -p<root_password> --all-databases > ~/db_backup.sql
 ```
 
-**Database dump only:**
-```bash
-docker-compose -f srcs/docker-compose.yml exec mariadb \
-  mysqldump -u root -p${MYSQL_ROOT_PASSWORD} --all-databases > backup.sql
-```
+### Restoring
 
-**WordPress files backup:**
 ```bash
-tar -czf ~/wordpress_backup.tar.gz /home/$(whoami)/data/wordpress/
-```
-
-### Restoring from Backup
-
-**Full restore:**
-```bash
+# Restore files
 tar -xzf ~/inception_backup.tar.gz -C /
-make fclean
-make
+
+# Restore database
+sudo docker-compose -f srcs/docker-compose.yml exec mariadb \
+  mysql -uroot -p<root_password> < ~/db_backup.sql
 ```
-
-**Database restore:**
-```bash
-docker-compose -f srcs/docker-compose.yml exec mariadb \
-  mysql -u root -p${MYSQL_ROOT_PASSWORD} < backup.sql
-```
-
-### Resetting Everything
-
-**Complete reset (warning: deletes all data):**
-```bash
-make fclean
-make
-```
-
----
-
-## Common Tasks
-
-### Add a New WordPress User
-
-1. Go to `https://<your_login>.42.fr/wp-admin`
-2. Navigate to **Users** → **Add New**
-3. Enter username, email, password, and role
-4. Click **Add New User**
-
-### Install a WordPress Plugin
-
-1. Go to `https://<your_login>.42.fr/wp-admin`
-2. Navigate to **Plugins** → **Add New**
-3. Search for a plugin and click **Install Now**
-4. Click **Activate**
-
-### Upload Files via FTP
-
-1. Connect to `ftp://<your_login>.42.fr:21`
-2. Navigate to `/wordpress/wp-content/uploads/`
-3. Upload your files
-4. Files will be accessible from your WordPress site
-
-### Check Database Tables
-
-1. Go to `https://<your_login>.42.fr/adminer`
-2. Select the `wordpress` database
-3. Browse tables to see posts, users, options, etc.
-
-### View Server Resource Usage
-
-```bash
-# CPU and memory usage
-docker stats
-
-# Disk usage
-du -sh /home/$(whoami)/data/
-
-# Network activity
-docker-compose -f srcs/docker-compose.yml stats
-```
-
----
-
-## Getting Help
-
-### Check Service Health
-
-```bash
-docker-compose -f srcs/docker-compose.yml ps
-```
-
-All services should show `Up` status and healthy status if configured.
-
-### View Recent Error Messages
-
-```bash
-docker-compose -f srcs/docker-compose.yml logs --tail=50
-```
-
-### Reset and Try Again
-
-If things are broken:
-
-```bash
-# Stop everything
-make down
-
-# Remove all data and containers
-make fclean
-
-# Start fresh
-make
-```
-
-This gives you a clean slate.
-
----
-
-## Additional Resources
-
-- **WordPress Help**: https://wordpress.org/support/
-- **Docker Documentation**: https://docs.docker.com/
-- **Nginx Configuration**: https://nginx.org/en/docs/
-
-For more technical information, see **DEV_DOC.md** if you need to modify the infrastructure.

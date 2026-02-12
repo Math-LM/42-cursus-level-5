@@ -1,21 +1,25 @@
-# 🐳 Inception
+*This project has been created as part of the 42 curriculum by viceda-s.*
 
-*This project has been created as part of the 42 curriculum by **viceda-s**.*
+# Inception
 
 ## Description
 
-**Inception** is a Docker-based infrastructure project that sets up a complete web application environment with WordPress, MariaDB, and Nginx. The project demonstrates practical system administration skills through containerization, service orchestration, and secure configuration management.
+**Inception** is a system administration project from the 42 curriculum that builds a complete, containerized web infrastructure using Docker. The goal is to set up multiple services — each running in its own Docker container — composed and orchestrated via Docker Compose on a personal virtual machine.
 
-### Project Goal
+The infrastructure includes a WordPress website served by Nginx with TLS encryption, backed by a MariaDB database, along with several bonus services (Redis cache, FTP server, Adminer, a static portfolio site, and a web-based file browser). Every container is built from a custom Dockerfile based on the penultimate stable version of Debian, and no pre-built images from Docker Hub are used (except the base OS).
 
-The objective is to virtualize multiple Docker images running on a personal virtual machine, establishing a secure multi-container infrastructure with proper networking, persistence, and security measures. This includes setting up a WordPress website with a database backend, a reverse proxy with TLS encryption, and optional bonus services for enhanced functionality.
+### Services Overview
 
-### What You Get
-
-- **WordPress**: A fully functional WordPress blog with two users (admin and regular user)
-- **MariaDB**: A dedicated database container for persistent data storage
-- **Nginx**: A reverse proxy with TLS 1.2/1.3 encryption as the sole entry point
-- **Bonus Services**: Redis caching, FTP server, Adminer DB management, and a static portfolio site
+| Service | Role |
+|---------|------|
+| **Nginx** | Reverse proxy and sole HTTPS entry point (port 443, TLS 1.2/1.3) |
+| **WordPress + PHP-FPM** | Dynamic web application (listens on port 9000 internally) |
+| **MariaDB** | Relational database for WordPress data |
+| **Redis** | (Bonus) Object cache for WordPress |
+| **FTP** | (Bonus) File transfer access to WordPress files |
+| **Adminer** | (Bonus) Lightweight database management UI |
+| **Static Site** | (Bonus) A simple HTML/CSS/JS portfolio |
+| **File Browser** | (Bonus) Web-based file manager for WordPress volumes |
 
 ---
 
@@ -23,260 +27,217 @@ The objective is to virtualize multiple Docker images running on a personal virt
 
 ### Prerequisites
 
-- A virtual machine with Docker and Docker Compose installed
-- Sufficient disk space for volumes (~1GB recommended)
-- A text editor for configuration
-- Basic command-line knowledge
+- A virtual machine running Linux (Debian-based recommended)
+- Docker Engine 20.10+ and Docker Compose 2.0+
+- `make` utility
+- At least 1 GB of free disk space
 
-### Installation & Setup
+### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url> Inception
+   git clone <repository-url> Inception
    cd Inception
    ```
 
-2. **Configure your login:**
-    - Replace `<your-login>` with your actual 42 login throughout the project:
-        - In `srcs/.env`
-        - In `docker-compose.yml`
-        - In Nginx configuration
-        - In the Makefile
-        - In `/etc/hosts` (optional, for local testing)
-
-3. **Set up credentials (never commit these):**
+2. **Set up secrets** (these files must never be committed):
    ```bash
    mkdir -p secrets
-   echo "your_secure_root_password" > secrets/db_root_password.txt
-   echo "your_wordpress_password" > secrets/db_password.txt
+   echo "your_root_password"        > secrets/db_root_password.txt
+   echo "your_wp_db_password"       > secrets/db_password.txt
    echo "admin_user:admin_password" > secrets/credentials.txt
    ```
 
-4. **Configure your domain:**
-    - Add to your VM's `/etc/hosts` (Linux/Mac):
-      ```bash
-      127.0.0.1 <your-login>.42.fr
-      ```
-    - Or use your VM's IP address instead of 127.0.0.1
+3. **Create the environment file** at `srcs/.env` with your configuration (domain, database credentials, WordPress settings, FTP user, etc.). See [DEV_DOC.md](DEV_DOC.md) for details on all variables.
+
+4. **Configure your domain** by adding an entry to `/etc/hosts`:
+   ```bash
+   sudo sh -c 'echo "127.0.0.1 viceda-s.42.fr" >> /etc/hosts'
+   ```
 
 5. **Build and launch:**
    ```bash
    make
    ```
-   Or:
-   ```bash
-   make up
-   ```
 
-### Common Commands
+### Makefile Commands
 
-| Command | Purpose |
-|---------|---------|
-| `make` or `make up` | Build and start all containers |
+| Command | Description |
+|---------|-------------|
+| `make` / `make up` | Build images and start all containers |
 | `make down` | Stop and remove containers |
-| `make stop` | Stop containers without removing |
-| `make start` | Start stopped containers |
-| `make logs` | View real-time container logs |
-| `make clean` | Remove containers and images |
-| `make fclean` | Full clean including volumes |
+| `make stop` | Stop containers without removing them |
+| `make start` | Start previously stopped containers |
+| `make logs` | Follow real-time logs from all services |
+| `make clean` | Remove containers, images, and prune the system |
+| `make fclean` | Full cleanup including volumes and persistent data |
 | `make re` | Rebuild everything from scratch |
 
 ### Accessing Services
 
-Once the infrastructure is running:
+| Service | URL / Access |
+|---------|-------------|
+| WordPress | `https://viceda-s.42.fr` |
+| WordPress Admin | `https://viceda-s.42.fr/wp-admin` |
+| Adminer | `https://viceda-s.42.fr/adminer` |
+| Static Portfolio | `https://viceda-s.42.fr/portfolio` |
+| File Browser | `http://localhost:8080` (credentials in `.env`) |
+| FTP | `ftp://viceda-s.42.fr:21` (use CLI — browsers no longer support FTP) |
 
-- **WordPress Website**: `https://<your-login>.42.fr`
-- **WordPress Admin Panel**: `https://<your-login>.42.fr/wp-admin`
-- **Adminer Database Manager**: `https://<your-login>.42.fr/adminer`
-- **Portfolio (Static Site)**: `https://<your-login>.42.fr/portfolio`
-- **FTP Server**: `ftp://<your-login>.42.fr:21`
-    - User: `ftpuser`
-    - Password: See `secrets/credentials.txt`
-
-### Important Notes
-
-- **HTTPS Warning**: The certificate is self-signed. Your browser will show a security warning—this is normal.
-- **Credentials**: Never commit sensitive information. Use `secrets/` folder and `.env` file.
-- **Volume Persistence**: All WordPress data is stored in `/home/login/data/`—this persists across container restarts.
+> **Note:** The TLS certificate is self-signed. Your browser will show a security warning — this is expected in a development environment.
 
 ---
 
 ## Project Description
 
-### Docker & Architecture Overview
+### Use of Docker
 
-This project demonstrates key Docker concepts:
+Docker is the core technology of this project. Instead of running services directly on the host OS or inside full virtual machines, each component is packaged in its own lightweight container. Docker Compose orchestrates the entire stack, defining how containers are built, connected, and persist data.
 
-#### **Containerization**
-Each service runs in its own isolated container:
-- **mariadb**: Database service
-- **wordpress**: Application server with PHP-FPM
-- **nginx**: Web server and reverse proxy
-- **redis**: (Bonus) Cache service
-- **ftp**: (Bonus) File transfer service
-- **adminer**: (Bonus) Database UI
-- **static-site**: (Bonus) Portfolio website
+Every Dockerfile in this project is written from scratch using `debian:bullseye` as the base image. No pre-made application images (e.g., `wordpress:latest` or `nginx:latest` from Docker Hub) are pulled — all installation and configuration is done explicitly in the build process. This ensures full understanding and control over what runs inside each container.
 
-#### **Networking**
-A user-defined bridge network (`inception_net`) connects all containers. This allows:
-- Service-to-service communication by hostname (e.g., `wordpress` connects to `mariadb:3306`)
-- Isolation from the host network
-- No need for `--link` or `network: host` (which are discouraged)
+### Sources Included in the Project
 
-#### **Persistence**
-Two volumes store persistent data:
-- **wp_db**: Contains MariaDB's data directory, bound to `/home/login/data/mariadb`
-- **wp_files**: Contains WordPress files, bound to `/home/login/data/wordpress`
+The `srcs/` directory contains everything Docker needs:
 
-Data survives container restarts and recreation.
+- **docker-compose.yml** — defines all services, volumes, networks, and their relationships.
+- **requirements/mariadb/** — Dockerfile, MariaDB config (`50-server.cnf`), and init script (`init-db.sh`).
+- **requirements/wordpress/** — Dockerfile and setup script (`setup-wordpress.sh`) using WP-CLI.
+- **requirements/nginx/** — Dockerfile with TLS certificate generation, and Nginx configuration files.
+- **requirements/bonus/** — Dockerfiles and configs for Redis, FTP (vsftpd), Adminer, static site, and File Browser.
 
-#### **Security**
-- Nginx uses TLS 1.2/1.3 only (no insecure protocols)
-- Nginx is the sole external entry point (port 443)
-- No passwords hardcoded in Dockerfiles
-- Secrets stored in `secrets/` folder (git-ignored)
-- Environment variables for configuration
+### Architecture
+
+All containers are connected through a single user-defined bridge network (`inception`). Nginx is the only container with an exposed port (443) to the host. All inter-service communication happens internally over the Docker network using service hostnames as DNS names (e.g., WordPress connects to `mariadb:3306`).
+
+Two named volumes persist data on the host at `/home/viceda-s/data/`:
+- **wp_db** → `/home/viceda-s/data/mariadb` (database files)
+- **wp_files** → `/home/viceda-s/data/wordpress` (WordPress files, themes, uploads)
+
+### Design Choices
+
+- **TLS 1.2/1.3 only** — enforced in Nginx; older protocols are disabled.
+- **No hardcoded passwords** — sensitive data is stored in `secrets/` files and loaded via environment variables or Docker secrets.
+- **PID 1 awareness** — entrypoint scripts use `exec` to hand off PID 1 to the actual service process, ensuring proper signal handling.
+- **Restart policy `always`** — containers automatically recover from crashes.
+- **Read-only volume mounts** — Nginx mounts WordPress files as read-only (`:ro`) since it only serves static assets.
 
 ---
 
-## Design Choices & Comparisons
+## Design Comparisons
 
 ### Virtual Machines vs Docker
 
-| Aspect | Virtual Machines | Docker |
-|--------|------------------|--------|
-| **Size** | Several GB per VM | Tens to hundreds of MB per image |
-| **Boot Time** | Minutes | Seconds |
-| **Resource Overhead** | High (full OS) | Low (shares kernel) |
-| **Isolation** | Complete OS-level isolation | Process-level isolation |
-| **Use Case** | Full OS simulation, legacy apps | Microservices, modern apps |
+| Aspect | Virtual Machines | Docker Containers |
+|--------|------------------|-------------------|
+| **What it virtualizes** | Full hardware + guest OS | Application environment only (shares host kernel) |
+| **Image size** | Several GB (entire OS) | Tens to hundreds of MB |
+| **Startup time** | Minutes (boot full OS) | Seconds (start a process) |
+| **Resource overhead** | High — each VM runs its own kernel, drivers, and OS services | Low — containers share the host kernel |
+| **Isolation** | Strong — hardware-level separation via hypervisor | Process-level — uses namespaces and cgroups |
+| **Portability** | Less portable; depends on hypervisor | Highly portable; runs anywhere Docker is installed |
+| **Best for** | Running different OSes, legacy applications, strong security boundaries | Microservices, CI/CD, reproducible dev environments |
 
-**Why Docker for this project?** Lightweight, portable, and ideal for multi-container applications. Docker excels at running application stacks without the overhead of full VMs.
+**Why Docker here?** The project runs multiple cooperating services (web server, app server, database, cache). Docker lets us define, build, and orchestrate them as lightweight, reproducible units without the multi-GB overhead of spinning up a VM per service.
 
 ### Secrets vs Environment Variables
 
-| Feature | Secrets | Environment Variables |
-|---------|---------|----------------------|
-| **Storage** | `secrets/` files, mounted at runtime | `.env` file or compose file |
-| **Security** | Better isolation, not visible in ps/logs | Visible in process environment |
-| **Use For** | Passwords, API keys, sensitive data | Configuration, non-sensitive settings |
-| **Docker Support** | First-class in Compose | Standard environment |
+| Aspect | Docker Secrets | Environment Variables |
+|--------|---------------|----------------------|
+| **Storage** | Files on disk, mounted into containers at runtime | Stored in `.env` or `docker-compose.yml`, injected into process environment |
+| **Visibility** | Not exposed by `docker inspect`, `ps`, or logs | Visible via `docker inspect`, `/proc/<pid>/environ`, and potentially in logs |
+| **Mutability** | Immutable once set for a container | Can be read and overridden at runtime |
+| **Scope** | Sensitive data: passwords, API keys, tokens | Non-sensitive configuration: hostnames, ports, feature flags |
+| **Docker support** | Native in Docker Swarm; in Compose, mounted as files | Native in all Docker modes |
 
-**Our approach:** Database passwords use Docker secrets; domain names and service hosts use environment variables.
+**Our approach:** Database passwords and user credentials are stored as secret files in the `secrets/` directory and referenced by containers at runtime. Non-sensitive settings (domain name, database host, Redis port, etc.) are passed as environment variables via `srcs/.env`.
 
 ### Docker Network vs Host Network
 
-| Feature | Docker Network | Host Network |
-|---------|---|---|
-| **Isolation** | Containers isolated, can't access host ports directly | Containers share host's network namespace |
-| **Port Binding** | Explicit mapping required | Direct access to host ports |
-| **Service Discovery** | DNS-based (e.g., `mariadb:3306`) | Use `localhost` or `127.0.0.1` |
-| **Security** | Better isolation, network policies possible | Potential security risks |
-| **Portability** | Highly portable across machines | Less portable |
+| Aspect | User-Defined Bridge Network | Host Network |
+|--------|----------------------------|-------------|
+| **Isolation** | Containers are isolated from the host and from each other by default | Container shares the host's full network stack |
+| **DNS** | Built-in DNS — containers resolve each other by name (e.g., `mariadb`) | No DNS; must use `localhost` or host IP |
+| **Port exposure** | Ports must be explicitly published (`ports:`) | All container ports are directly accessible on the host |
+| **Security** | Stronger — only explicitly exposed ports are reachable from outside | Weaker — any listening port is immediately on the host interface |
+| **Multi-container** | Ideal — each service is reachable by name on the shared network | Awkward — port conflicts between services |
 
-**Why Docker Network?** The subject requires it. Docker's user-defined networks provide cleaner isolation and built-in DNS service discovery, allowing containers to communicate by name.
+**Why a bridge network?** The project requires container isolation and inter-service communication by name. The `inception` bridge network provides automatic DNS resolution so WordPress can reach `mariadb:3306` and Nginx can proxy to `wordpress:9000` — without exposing internal ports to the host.
 
 ### Docker Volumes vs Bind Mounts
 
-| Feature | Docker Volumes | Bind Mounts |
-|---------|---|---|
-| **Management** | Managed by Docker | User manages the directory |
-| **Driver Support** | Can use custom drivers | Only local filesystem |
-| **Performance** | Good on all platforms | Issues on Docker Desktop (Mac/Windows) |
-| **Persistence Location** | Docker's data directory | Specified directory on host |
-| **Use For** | General persistent data | Development, debugging, specific mount points |
+| Aspect | Docker Volumes | Bind Mounts |
+|--------|---------------|-------------|
+| **Management** | Managed by Docker (`docker volume` commands) | Managed by the user (regular directories) |
+| **Location** | Docker's internal storage area (e.g., `/var/lib/docker/volumes/`) | Any path on the host filesystem |
+| **Portability** | More portable — no dependency on host path structure | Tied to a specific host directory |
+| **Performance** | Consistent across platforms | Can have performance issues on macOS/Windows |
+| **Backup** | Via `docker volume` commands or `docker cp` | Standard file system tools (`cp`, `tar`, `rsync`) |
+| **Driver support** | Supports volume drivers (NFS, cloud storage, etc.) | Local filesystem only |
 
-**Our approach:** We use Docker volumes with bind mount options (`driver_opts`), giving us Docker's management plus explicit host-side persistence at `/home/login/data/`.
+**Our approach:** We use Docker named volumes with `driver_opts` set to `type: none, o: bind`, which combines Docker's management and naming with explicit host-side storage at `/home/viceda-s/data/`. This gives us the benefits of both: Docker tracks the volumes, and the data is stored at a known, accessible path on the host.
 
 ---
 
 ## Resources
 
-### Docker & Containerization
-- [Official Docker Documentation](https://docs.docker.com/)
-- [Docker Compose Reference](https://docs.docker.com/compose/compose-file/)
-- [Best Practices for Writing Dockerfiles](https://docs.docker.com/develop/dev-best-practices/)
-- [Understanding Docker Networking](https://docs.docker.com/network/)
-- [Docker Volumes Documentation](https://docs.docker.com/storage/volumes/)
+### Official Documentation
+- [Docker Documentation](https://docs.docker.com/)
+- [Docker Compose File Reference](https://docs.docker.com/compose/compose-file/)
+- [Dockerfile Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
+- [Docker Networking Overview](https://docs.docker.com/network/)
+- [Docker Volumes](https://docs.docker.com/storage/volumes/)
 
-### WordPress & PHP-FPM
-- [WordPress Core Documentation](https://wordpress.org/support/article/editing-wp-config-php/)
+### WordPress & PHP
+- [WordPress Configuration (wp-config.php)](https://wordpress.org/support/article/editing-wp-config-php/)
+- [WP-CLI Command Reference](https://developer.wordpress.org/cli/commands/)
 - [PHP-FPM Configuration](https://www.php.net/manual/en/install.fpm.configuration.php)
-- [WordPress CLI Reference](https://developer.wordpress.org/cli/commands/)
 
 ### Nginx & TLS
 - [Nginx Documentation](https://nginx.org/en/docs/)
-- [Configuring HTTPS Servers](https://nginx.org/en/docs/http/configuring_https_servers.html)
-- [TLS 1.3 Configuration](https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-with-http-2-support-on-ubuntu-20-04)
+- [Configuring HTTPS Servers (Nginx)](https://nginx.org/en/docs/http/configuring_https_servers.html)
+- [Mozilla SSL Configuration Generator](https://ssl-config.mozilla.org/)
 
-### MariaDB & MySQL
-- [MariaDB Official Documentation](https://mariadb.com/docs/server/)
-- [Docker MariaDB Setup](https://hub.docker.com/_/mariadb)
-
-### Security Best Practices
-- [OWASP Docker Security](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html)
-- [PID 1 and Docker](https://alexei-led.github.io/post/dockerfile_best-practices/)
+### MariaDB
+- [MariaDB Server Documentation](https://mariadb.com/docs/server/)
+- [MariaDB Docker Hub Page](https://hub.docker.com/_/mariadb)
 
 ### Bonus Services
-- [Redis Cache Documentation](https://redis.io/documentation)
-- [vsftpd Configuration](https://security.appspot.com/vsftpd.html)
+- [Redis Documentation](https://redis.io/documentation)
+- [vsftpd Manual](https://security.appspot.com/vsftpd.html)
 - [Adminer Project](https://www.adminer.org/)
+- [File Browser Project](https://filebrowser.org/)
+
+### Security
+- [OWASP Docker Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html)
+- [Docker and PID 1 — Best Practices](https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
 
 ### AI Usage in This Project
 
-AI was used for the following tasks to enhance productivity and learning:
+AI tools (GitHub Copilot, ChatGPT) were used during development for the following tasks:
 
-1. **Code Generation & Scaffolding** (Docker Compose, Dockerfiles, shell scripts)
-    - Generated boilerplate Dockerfile structures for each service
-    - Created bash initialization scripts for database and WordPress setup
-    - Built configuration templates for Nginx, MariaDB, and vsftpd
-    - *Personal validation*: Each generated script was reviewed, tested, and customized to match project requirements
+1. **Scaffolding and boilerplate** — generating initial Dockerfile structures, shell script templates, and Docker Compose service definitions. Every generated file was reviewed, modified, and tested against the actual infrastructure.
 
-2. **Documentation & Explanations**
-    - Generated initial outlines for README and documentation files
-    - Provided technical explanations of Docker networking, volumes, and security
-    - Created comparison tables for VMs vs Docker, Secrets vs Env Vars, etc.
-    - *Personal validation*: Verified accuracy against official documentation and personal testing
+2. **Configuration research** — understanding Nginx TLS directives, PHP-FPM pool settings, MariaDB initialization, and vsftpd passive-mode configuration. AI-provided configurations were validated against official documentation.
 
-3. **Troubleshooting & Problem-Solving**
-    - AI assisted in debugging TLS configuration issues
-    - Provided guidance on PHP-FPM socket vs TCP listening
-    - Explained PID 1 and proper daemon management in containers
-    - *Personal validation*: Tested all recommendations in the actual environment
+3. **Debugging assistance** — diagnosing container startup failures, permission issues on volumes, and PHP-FPM socket vs TCP configuration. All suggested fixes were tested in the running environment.
 
-4. **Configuration Best Practices**
-    - AI suggested security hardening for Nginx, MariaDB, and FTP
-    - Provided guidance on environment variable handling and Docker secrets
-    - *Personal validation*: Aligned suggestions with 42 project requirements and security standards
+4. **Documentation** — drafting outlines for README.md, USER_DOC.md, and DEV_DOC.md, including comparison tables and troubleshooting sections. Content was reviewed for accuracy and adapted to the actual project.
 
-**Key Takeaway**: AI accelerated development and research, but every component was critically reviewed, tested, and adapted to ensure alignment with project specifications and security requirements.
+AI was **not** used to blindly generate the final project. Every component was critically reviewed, tested, and understood before being included.
 
 ---
 
 ## Troubleshooting
 
-### Containers won't start
-```bash
-docker-compose -f srcs/docker-compose.yml logs <service-name>
-```
-Check for missing environment variables or port conflicts.
-
-### Permission denied on volumes
-```bash
-sudo chown -R $USER:$USER /home/$(whoami)/data/
-```
-
-### Database connection errors
-Wait for MariaDB to fully initialize (check logs):
-```bash
-make logs
-```
-
-### HTTPS certificate warnings
-This is expected with self-signed certificates. Use `-k` flag with curl or accept warnings in your browser.
-
-### Can't resolve domain
-Ensure your `/etc/hosts` entry is correct or use your VM's IP address directly.
+| Problem | Solution |
+|---------|----------|
+| Containers won't start | Run `make logs` to check error output; look for missing env vars or port conflicts |
+| Permission denied on volumes | `sudo chown -R $USER:$USER /home/viceda-s/data/` |
+| Database connection errors | Wait for MariaDB to finish initializing (check `make logs` for "ready for connections") |
+| HTTPS certificate warnings | Expected with self-signed certs — accept the warning or use `curl -k` |
+| Cannot resolve `viceda-s.42.fr` | Verify `/etc/hosts` contains `127.0.0.1 viceda-s.42.fr` |
+| FTP not accessible in browser | Browsers dropped FTP support — use `curl` or `lftp` from the command line |
 
 ---
 
@@ -284,49 +245,25 @@ Ensure your `/etc/hosts` entry is correct or use your VM's IP address directly.
 
 ```
 Inception/
-├── Makefile
-├── README.md
-├── USER_DOC.md
-├── DEV_DOC.md
-├── secrets/
+├── Makefile                  # Build automation
+├── README.md                 # Project overview (this file)
+├── USER_DOC.md               # End-user / administrator guide
+├── DEV_DOC.md                # Developer documentation
+├── secrets/                  # Credential files (git-ignored)
 │   ├── db_root_password.txt
 │   ├── db_password.txt
 │   └── credentials.txt
 └── srcs/
-    ├── .env
-    ├── docker-compose.yml
+    ├── .env                  # Environment variables (git-ignored)
+    ├── docker-compose.yml    # Service orchestration
     └── requirements/
-        ├── mariadb/
-        │   ├── Dockerfile
-        │   ├── .dockerignore
-        │   ├── conf/
-        │   │   └── 50-server.cnf
-        │   └── tools/
-        │       └── init-db.sh
-        ├── wordpress/
-        │   ├── Dockerfile
-        │   ├── .dockerignore
-        │   ├── conf/
-        │   └── tools/
-        │       └── setup-wordpress.sh
-        ├── nginx/
-        │   ├── Dockerfile
-        │   ├── .dockerignore
-        │   ├── conf/
-        │   │   ├── nginx.conf
-        │   │   └── default.conf
-        │   └── tools/
+        ├── mariadb/          # Database service
+        ├── wordpress/        # WordPress + PHP-FPM
+        ├── nginx/            # Reverse proxy with TLS
         └── bonus/
-            ├── redis/
-            ├── ftp/
-            ├── adminer/
-            └── static-site/
+            ├── redis/        # Cache service
+            ├── ftp/          # FTP server
+            ├── adminer/      # Database management UI
+            ├── static-site/  # Portfolio website
+            └── filebrowser/  # Web-based file manager
 ```
-
----
-
-## License & Attribution
-
-This project is part of the 42 curriculum. It is for educational purposes only.
-
-**Disclaimer**: This is a simplified stack for learning Docker and system administration. For production use, additional security measures, monitoring, and backup strategies are essential.
